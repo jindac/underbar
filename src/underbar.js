@@ -172,23 +172,19 @@
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
     var result;
-    var startIndex = 0;
-    /*accumulator === undefined ? result = 0 : result = accumulator;
-    _.each(collection, function (value, index, array) {
-      result += iterator(array[index]);
-    });*/
-    if (accumulator === undefined) {
-      result = collection[0];
-      startIndex = 1;
-    } else {
+    var useFirstIndex = false;
+    if (arguments.length === 3) {
       result = accumulator;
-    }
-    for (var i = startIndex; i < collection.length; i++) {
-      result = iterator(result, collection[i]);
+      useFirstIndex = true;
     };
-    //_.each(collection, function (value, index, array) {
-      //  iterator(result, array[index]);
-      //});
+    _.each(collection, function (value, index, array) {
+      if (useFirstIndex === false) {
+        useFirstIndex = true;
+        result = value;
+      } else {
+        result = iterator(result, value);
+      }
+    });
     return result;
   };
 
