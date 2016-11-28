@@ -436,7 +436,7 @@
     //var result;
     return function() { //([1,2,3]) vs (1,2,3)
       var argumentsArray = [...arguments]; //converts arguments into array // [[1,2,3]] vs [1,2,3]
-      console.log("arguments = ",argumentsArray);
+      //console.log("arguments = ",argumentsArray);
       return storage[argumentsArray.join('')] = storage[argumentsArray.join('')] || func.apply(this, arguments);
       //return storage[arguments.toString()];
     };
@@ -460,11 +460,11 @@
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
 
-    var args = [...arguments];
+    var args = [...arguments];//rest of the parameters that are not named
     var argsSliced = args.slice(2);
 
     return window.setTimeout(function(){
-      return func.apply(func, argsSliced);
+      return func.apply(this, argsSliced);
     }, wait);
   };
 
@@ -486,7 +486,7 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
-    console.log("before:", array)
+    //console.log("before:", array)
     //takes an array and randomize the index
     //how can we randomize indecies? -> it will retain array.length
     var currentI = array.length;
@@ -496,15 +496,13 @@
     _.each(array, function(item){
       result.push(item);
     });
-
     while(0 !== currentI){
       randomI = Math.floor(Math.random()*currentI);
       currentI --;
       tempVal = result[currentI];
       result[currentI] = result[randomI];
       result[randomI] = tempVal;
-
-    }console.log("after:",array);
+    }//console.log("after:",array);
     return result;
   };
 
@@ -519,39 +517,184 @@
 
   // Calls the method named by functionOrKey on each value in the list.
   // Note: You will need to learn a bit about .apply to complete this.
-  _.invoke = function(collection, functionOrKey, args) {
-  };
+/*
+  var reverse = function(){
+          return this.split('').reverse().join('');
+        };
 
-  // Sort the object's values by a criterion produced by an iterator.
+        var reversedStrings = _.invoke(['dog', 'cat'], reverse);
+
+        expect(reversedStrings).to.eql(['god', 'tac']);
+*/
+  _.invoke = function(collection, functionOrKey, args) {
+    // take the collection,
+    // use the _.each function to iterate
+    // apply functionOrKey
+    //result = func.apply(this, arguments);
+
+    /*return _.map(collection, function (param) { //[1,2,3], func(num) = return num +1 // [2,3,4]
+      console.log("param = ",param);
+      return functionOrKey.apply(this, param);
+    });*/
+    //in the case of .toUpperCase() for cat, cat.toUpperCase ()?
+    //var collection = {functionOrKey : function () {do something}} //collection.functonOrKey // do something
+    return _.map(collection, function(key){
+      if (typeof functionOrKey !== "string") {
+        return functionOrKey.apply(key); //what happened to this?
+      }
+      else {
+        return key[functionOrKey]();
+      }
+    });
+  }
+
+  // Sort the object's values by a criterion produced by an iterator. //[1,2,3] var iter= function(val) {return val>2}
   // If iterator is a string, sort objects by that property with the name
   // of that string. For example, _.sortBy(people, 'name') should sort
   // an array of people by their name.
   _.sortBy = function(collection, iterator) {
+    var compareFunc;
+    if (typeof iterator === "function") {
+      compareFunc = function(a, b) {
+        if (iterator(a) < iterator(b)) {
+          return -1;
+        } else if (iterator(a) > iterator(b)) {
+          return 1;
+        } else {
+          return 0;
+        }
+      };
+    } else if (typeof iterator === "string") {
+      compareFunc = function(a, b) {
+        if (a[iterator] < b[iterator]) {
+          return -1;
+        } else if (a[iterator] > b[iterator]) {
+          return 1;
+        } else {
+          return 0;
+        }
+      };
+    }
+    return collection.sort(compareFunc);
   };
 
   // Zip together two or more arrays with elements of the same index
   // going together.
   //
   // Example:
+    //[_.zip(['moe', 'larry', 'curly'], [30, 40, 50], [true, false, false]);
+    //=> [["moe", 30, true], ["larry", 40, false], ["curly", 50, false]]]
   // _.zip(['a','b','c','d'], [1,2,3]) returns [['a',1], ['b',2], ['c',3], ['d',undefined]]
+
+  //for(var i=0; i <)
+      //for(var j= 0
+        // array.push()
   _.zip = function() {
+    //takes array params and group corresponding values by index
+    //number of arrays past = arguments.length
+    //use _.map
+    //things tobe iterated: 1. arguments 2. each indiv argument
+    /*var currentArray;
+    return _.map(arguments, function (array) { //this iterates through arguments
+      currentArray = [];
+      currentArray.push(_.each(array, function() {
+
+      }));
+      return _.each(array, function (arrayItem, i) { // this iteratres through arguements[i]
+        return array
+      });
+    });*/
+    var bigArray = [];
+    var smallArray;
+    _.each(arguments, function(value, index, array) {
+      smallArray = [];
+      _.each(array, function(v, i, a) {
+        smallArray.push(array[i][index]);
+      })
+      bigArray.push(smallArray);
+    })
+    /*for(var i = 0; i < arguments.length; i++) { // i = 0
+      smallArray = []; //smallArray = []
+      for(var j = 0; j < arguments[0].length; j++) { // j = 0; j= 1
+        smallArray.push(arguments[j][i]);//['a']; ['a',1]
+      }
+      bigArray.push(smallArray);
+    }
+    */
+    console.log(bigArray);
+    return bigArray;
   };
 
   // Takes a multidimensional array and converts it to a one-dimensional array.
   // The new array should contain all elements of the multidimensional array.
   //
   // Hint: Use Array.isArray to check if something is an array
+/*
+    _.flatten([1, [2], [3, [[[4]]]]])
+      });
+
+      it('can flatten nested arrays', function() {
+        var nestedArray = [1, [2], [3, [[[4]]]]];
+
+        expect(_.flatten(nestedArray)).to.eql([1,2,3,4]);
+      });
+
+*/
   _.flatten = function(nestedArray, result) {
+    var findArrays = function(array) {
+      var foundArray = false;
+      _.each(array, function(v,i,a) {
+        if (Array.isArray(v)) {
+          foundArray = true;
+        };
+      });
+      return foundArray;
+    };
+    while (findArrays(nestedArray)) {
+      nestedArray = _.reduce(nestedArray, function (prev, current) {
+        return prev.concat(current);
+      }, []);
+    };
+    return nestedArray;
   };
 
   // Takes an arbitrary number of arrays and produces an array that contains
   // every item shared between all the passed-in arrays.
+  /*
+  var stooges = ['moe', 'curly', 'larry'];
+  var leaders = ['moe', 'groucho'];
+  expect(_.intersection(stooges, leaders)).to.eql(['moe']);
+*/
   _.intersection = function() {
+    var result = [];
+    var masterArray = [...arguments[0]];
+    var slicedArray = [...arguments].slice(1);
+    _.each(slicedArray, function (value, int, array) { // interate arguments
+      _.each(value, function(v, i, a) { // iterate argument
+        if(_.contains(masterArray, v)){ //a = stooges v='moe'
+          result.push(v);
+        }
+      });
+    });
+    return result;
   };
 
   // Take the difference between one array and a number of other arrays.
   // Only the elements present in just the first array will remain.
+  //var diff = _.difference([1,2,3], [2,30,40]);
+  //expect(diff).to.eql([1,3]);
+
   _.difference = function(array) {
+    var result = [];
+    var masterArray = array; //[1,2,3]
+    var slicedArray = [...arguments].slice(1);
+    var flatSlicedArray = _.flatten(slicedArray);
+    _.each(masterArray, function (value, int, array) { // interate arguments value = [2,30,40];
+      if(!(_.contains(flatSlicedArray, value))){ //a = [2,30,40] v=2
+        result.push(value);
+      };
+    });
+    return result;
   };
 
   // Returns a function, that, when invoked, will only be triggered at most once
@@ -559,6 +702,36 @@
   // on this function.
   //
   // Note: This is difficult! It may take a while to implement.
-  _.throttle = function(func, wait) {
+  /*
+  var fn = _.throttle(callback, 100);// can only be called once every 100ms
+        fn(); // called
+        setTimeout(fn, 50); // not called
+        setTimeout(fn, 100); // called
+        setTimeout(fn, 150); // not called
+        setTimeout(fn, 199); // not called
+        clock.tick(200);
+
+        expect(callback).to.have.been.calledTwice;
+    */
+  _.throttle = function(func, wait) { //wait = 100ms
+    var timer = 0;
+    var tick = function() {
+      console.log("entered");
+      timer++;
+
+    };
+    var intervalId = window.setInterval(tick, 10);
+    console.log(timer);
+
+
+    if (timer >= 10) { //0 to 100
+      timer = 0;
+      return func;
+    } else {
+      console.log("Wait! Not enough time has passed!");
+    }
+
   };
+
+
 }());
